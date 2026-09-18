@@ -22,12 +22,6 @@ class HomeViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    init {
-        loadMoviesPopular()
-        loadMoviesTopRated()
-        loadMoviesNowPlaying()
-    }
-
 
     fun loadMoviesPopular() {
         if (_uiState.value.loadingPopularMovie) return

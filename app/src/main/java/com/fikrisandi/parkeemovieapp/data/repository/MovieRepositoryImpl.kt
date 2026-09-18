@@ -1,6 +1,8 @@
 package com.fikrisandi.parkeemovieapp.data.repository
 
 import com.fikrisandi.parkeemovieapp.BuildConfig
+import com.fikrisandi.parkeemovieapp.data.local.dao.MovieDao
+import com.fikrisandi.parkeemovieapp.data.local.entity.MovieEntity
 import com.fikrisandi.parkeemovieapp.data.remote.MovieService
 import com.fikrisandi.parkeemovieapp.data.remote.model.MovieDto
 import com.fikrisandi.parkeemovieapp.data.remote.model.ReviewDto
@@ -12,7 +14,8 @@ import com.fikrisandi.parkeemovieapp.domain.repository.MovieRepository
 import javax.inject.Inject
 
 class MovieRepositoryImpl @Inject constructor(
-    private val movieService: MovieService
+    private val movieService: MovieService,
+    private val movieDao: MovieDao
 ) : MovieRepository {
 
     override suspend fun getMoviesPopular(page: Int): Pair<List<Movie>, Int> {
@@ -38,6 +41,22 @@ class MovieRepositoryImpl @Inject constructor(
         return movieService.getMovieReviews(movieId, page).toDomain()
     }
 
+    override suspend fun getFavoriteMovies(): List<Movie> {
+        return movieDao.getAll().map { it.toDomain() }
+    }
+
+    override suspend fun getFavoriteMovie(id: Int): Movie? {
+        return movieDao.getById(id)?.toDomain()
+    }
+
+    override suspend fun addFavoriteMovie(movie: Movie) {
+        movieDao.insert(movie.toEntity())
+    }
+
+    override suspend fun deleteFavoriteMovie(movie: Movie) {
+        movieDao.deleteById(movie.id)
+    }
+
     private fun MovieDto.toDomain(): Movie = Movie(
         id = id,
         title = title,
@@ -45,6 +64,24 @@ class MovieRepositoryImpl @Inject constructor(
         overview = overview,
         releaseDate = releaseDate ?: "",
         rating = voteAverage
+    )
+
+    private fun MovieEntity.toDomain(): Movie = Movie(
+        id = id,
+        title = title,
+        posterPath = posterPath,
+        overview = overview,
+        releaseDate = releaseDate,
+        rating = rating
+    )
+
+    private fun Movie.toEntity(): MovieEntity = MovieEntity(
+        id = id,
+        title = title,
+        posterPath = posterPath,
+        overview = overview,
+        releaseDate = releaseDate,
+        rating = rating
     )
 
     private fun ReviewDto.toDomain(): Review = Review(

@@ -1,6 +1,7 @@
 package com.fikrisandi.parkeemovieapp.screen.detail
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -37,9 +38,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -47,6 +46,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.fikrisandi.parkeemovieapp.domain.model.Review
 
@@ -54,14 +54,12 @@ import com.fikrisandi.parkeemovieapp.domain.model.Review
 @Composable
 fun MovieDetailScreen(
     movieId: Int,
-    onBackClick: () -> Unit,
-    viewModel: MovieDetailViewModel
+    viewModel: MovieDetailViewModel,
+    navController: NavController,
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
-
-    var isFavorite by remember { mutableStateOf(false) }
 
     LaunchedEffect(movieId) {
         viewModel.setMovieId(movieId)
@@ -82,12 +80,19 @@ fun MovieDetailScreen(
         }
     }
 
+    LaunchedEffect(uiState.toastMessage) {
+        uiState.toastMessage?.let {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            viewModel.onToastShown()
+        }
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(uiState.movie?.title ?: "Loading...") },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
+                    IconButton(onClick = { navController.popBackStack() }) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
@@ -108,11 +113,11 @@ fun MovieDetailScreen(
                         horizontalArrangement = Arrangement.End,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        IconButton(onClick = { isFavorite = !isFavorite }) {
+                        IconButton(onClick = { viewModel.actionToFavorite() }) {
                             Icon(
-                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                                contentDescription = if (isFavorite) "Remove from Favorites" else "Add to Favorites",
-                                tint = if (isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
+                                imageVector = if (uiState.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = if (uiState.isFavorite) "Remove from Favorites" else "Add to Favorites",
+                                tint = if (uiState.isFavorite) Color.Red else MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -120,7 +125,10 @@ fun MovieDetailScreen(
                             onClick = {
                                 val sendIntent = Intent().apply {
                                     action = Intent.ACTION_SEND
-                                    putExtra(Intent.EXTRA_TEXT, "Check out this movie: ${movie.title}\n\n${movie.overview}")
+                                    putExtra(
+                                        Intent.EXTRA_TEXT,
+                                        "Check out this movie: ${movie.title}\n\n${movie.overview}"
+                                    )
                                     type = "text/plain"
                                 }
                                 val shareIntent = Intent.createChooser(sendIntent, null)

@@ -2,7 +2,9 @@ package com.fikrisandi.parkeemovieapp.screen.detail
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.fikrisandi.parkeemovieapp.domain.usecase.AddFavoriteMovieUseCase
 import com.fikrisandi.parkeemovieapp.domain.usecase.GetMovieDetailUseCase
+import com.fikrisandi.parkeemovieapp.domain.usecase.GetMovieFavoriteUseCase
 import com.fikrisandi.parkeemovieapp.domain.usecase.GetMovieReviewsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,8 @@ import javax.inject.Inject
 class MovieDetailViewModel @Inject constructor(
     private val getMovieDetailUseCase: GetMovieDetailUseCase,
     private val getMovieReviewsUseCase: GetMovieReviewsUseCase,
+    private val addFavoriteMovieUseCase: AddFavoriteMovieUseCase,
+    private val getMovieFavoriteUseCase: GetMovieFavoriteUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(MovieDetailUiState())
     val uiState: StateFlow<MovieDetailUiState> = _uiState.asStateFlow()
@@ -29,6 +33,7 @@ class MovieDetailViewModel @Inject constructor(
         currentMovieId = movieId
         loadMovieDetail(movieId)
         loadReviews(movieId)
+        loadFavoriteMovie(movieId)
     }
 
     private fun loadMovieDetail(movieId: Int) {
@@ -64,5 +69,39 @@ class MovieDetailViewModel @Inject constructor(
                 _uiState.update { it.copy(isLoadingReviews = false) }
             }
         }
+    }
+
+    fun loadFavoriteMovie(id: Int) {
+        viewModelScope.launch {
+            try {
+                val movieFavorite = getMovieFavoriteUseCase(id)
+                _uiState.update { it.copy(isFavorite = movieFavorite != null) }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun actionToFavorite() {
+        viewModelScope.launch {
+            try {
+                val movie = _uiState.value.movie ?: return@launch
+                val wasFavorite = _uiState.value.isFavorite
+                addFavoriteMovieUseCase(movie)
+                val message = if (wasFavorite) "Removed from favorites" else "Added to favorites"
+                _uiState.update { 
+                    it.copy(
+                        isFavorite = !wasFavorite,
+                        toastMessage = message
+                    ) 
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
+
+    fun onToastShown() {
+        _uiState.update { it.copy(toastMessage = null) }
     }
 }

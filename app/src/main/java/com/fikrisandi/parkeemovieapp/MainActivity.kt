@@ -18,6 +18,8 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.fikrisandi.parkeemovieapp.screen.detail.MovieDetailScreen
 import com.fikrisandi.parkeemovieapp.screen.detail.MovieDetailViewModel
+import com.fikrisandi.parkeemovieapp.screen.favorite.MovieFavoriteScreen
+import com.fikrisandi.parkeemovieapp.screen.favorite.MovieFavoriteViewModel
 import com.fikrisandi.parkeemovieapp.screen.home.HomeScreen
 import com.fikrisandi.parkeemovieapp.screen.home.HomeViewModel
 import com.fikrisandi.parkeemovieapp.ui.theme.ParkeeMovieAppTheme
@@ -37,9 +39,15 @@ class MainActivity : ComponentActivity() {
                         val viewModel: HomeViewModel = hiltViewModel()
                         HomeScreen(
                             viewModel = viewModel,
-                            onMovieClick = { movie ->
-                                navController.navigate("movie_detail/${movie.id}")
-                            }
+                            navController = navController,
+                        )
+                    }
+
+                    composable("favorite") {
+                        val viewModel: MovieFavoriteViewModel = hiltViewModel()
+                        MovieFavoriteScreen(
+                            viewModel = viewModel,
+                            navController = navController,
                         )
                     }
                     composable(
@@ -52,7 +60,7 @@ class MainActivity : ComponentActivity() {
                         MovieDetailScreen(
                             movieId = movieId,
                             viewModel = viewModel,
-                            onBackClick = { navController.popBackStack() }
+                            navController = navController,
                         )
                     }
                 }
