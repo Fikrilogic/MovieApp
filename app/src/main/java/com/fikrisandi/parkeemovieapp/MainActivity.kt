@@ -11,37 +11,52 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.fikrisandi.parkeemovieapp.screen.detail.MovieDetailScreen
+import com.fikrisandi.parkeemovieapp.screen.detail.MovieDetailViewModel
+import com.fikrisandi.parkeemovieapp.screen.home.HomeScreen
+import com.fikrisandi.parkeemovieapp.screen.home.HomeViewModel
 import com.fikrisandi.parkeemovieapp.ui.theme.ParkeeMovieAppTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             ParkeeMovieAppTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                val navController = rememberNavController()
+
+                NavHost(navController = navController, startDestination = "home") {
+                    composable("home") {
+                        val viewModel: HomeViewModel = hiltViewModel()
+                        HomeScreen(
+                            viewModel = viewModel,
+                            onMovieClick = { movie ->
+                                navController.navigate("movie_detail/${movie.id}")
+                            }
+                        )
+                    }
+                    composable(
+                        route = "movie_detail/{movieId}",
+                        arguments = listOf(navArgument("movieId") { type = androidx.navigation.NavType.IntType })
+                    ) { backStackEntry ->
+                        val movieId = backStackEntry.arguments?.getInt("movieId") ?: return@composable
+                        val viewModel: MovieDetailViewModel = hiltViewModel()
+
+                        MovieDetailScreen(
+                            movieId = movieId,
+                            viewModel = viewModel,
+                            onBackClick = { navController.popBackStack() }
+                        )
+                    }
                 }
             }
         }
-    }
-}
-
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    ParkeeMovieAppTheme {
-        Greeting("Android")
     }
 }
