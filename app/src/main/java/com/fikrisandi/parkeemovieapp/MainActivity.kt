@@ -4,13 +4,6 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -52,9 +45,12 @@ class MainActivity : ComponentActivity() {
                     }
                     composable(
                         route = "movie_detail/{movieId}",
-                        arguments = listOf(navArgument("movieId") { type = androidx.navigation.NavType.IntType })
+                        arguments = listOf(navArgument("movieId") {
+                            type = androidx.navigation.NavType.IntType
+                        })
                     ) { backStackEntry ->
-                        val movieId = backStackEntry.arguments?.getInt("movieId") ?: return@composable
+                        val movieId =
+                            backStackEntry.arguments?.getInt("movieId") ?: return@composable
                         val viewModel: MovieDetailViewModel = hiltViewModel()
 
                         MovieDetailScreen(

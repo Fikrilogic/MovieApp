@@ -32,8 +32,6 @@ class MovieFavoriteViewModel @Inject constructor(
                         isLoading = false
                     )
                 }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false) }
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }

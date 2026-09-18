@@ -1,10 +1,8 @@
 package com.fikrisandi.parkeemovieapp.data.remote
 
-import com.fikrisandi.parkeemovieapp.data.remote.model.GenreListResponse
 import com.fikrisandi.parkeemovieapp.data.remote.model.MovieDto
 import com.fikrisandi.parkeemovieapp.data.remote.model.MovieListResponse
 import com.fikrisandi.parkeemovieapp.data.remote.model.ReviewListResponse
-import com.fikrisandi.parkeemovieapp.data.remote.model.VideoListResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query

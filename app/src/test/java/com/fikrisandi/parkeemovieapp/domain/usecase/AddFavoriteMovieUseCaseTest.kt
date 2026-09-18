@@ -11,9 +11,6 @@ import io.mockk.junit4.MockKRule
 import io.mockk.just
 import io.mockk.runs
 import kotlinx.coroutines.runBlocking
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -72,9 +69,9 @@ class AddFavoriteMovieUseCaseTest {
 
         mockAddFavoriteMovieUseCase(movie)
 
-        coVerify(exactly = 1){ mockMovieRepository.getFavoriteMovie(movie.id) }
-        coVerify(exactly = 1){ mockMovieRepository.deleteFavoriteMovie(movie) }
-        coVerify(exactly = 0){ mockMovieRepository.addFavoriteMovie(movie) }
+        coVerify(exactly = 1) { mockMovieRepository.getFavoriteMovie(movie.id) }
+        coVerify(exactly = 1) { mockMovieRepository.deleteFavoriteMovie(movie) }
+        coVerify(exactly = 0) { mockMovieRepository.addFavoriteMovie(movie) }
     }
 
 }

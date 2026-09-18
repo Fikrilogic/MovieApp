@@ -20,10 +20,6 @@ data class MovieDto(
     @SerialName("vote_average") val voteAverage: Double
 )
 
-@Serializable
-data class GenreListResponse(
-    val genres: List<GenreDto>
-)
 
 @Serializable
 data class GenreDto(
@@ -48,11 +44,6 @@ data class ReviewDto(
     @SerialName("created_at") val createdAt: String
 )
 
-@Serializable
-data class VideoListResponse(
-    val id: Int,
-    val results: List<VideoDto>
-)
 
 @Serializable
 data class VideoDto(

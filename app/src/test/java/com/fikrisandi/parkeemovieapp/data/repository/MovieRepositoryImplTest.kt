@@ -171,36 +171,4 @@ class MovieRepositoryImplTest {
             coVerify(exactly = 1) { mockMovieDao.deleteById(55) }
         }
 
-//    private class MockMovieService : MovieService {
-//        var popularResponse = MovieListResponse(emptyList(), 1, 1)
-//        var detailResponse = MovieDto(0, "", null, "", null, 0.0)
-//
-//        override suspend fun getPopularMovies(page: Int): MovieListResponse = popularResponse
-//        override suspend fun getNowPlayingMovies(page: Int): MovieListResponse = MovieListResponse(emptyList(), 1, 1)
-//        override suspend fun getTopRatedMovies(page: Int): MovieListResponse = MovieListResponse(emptyList(), 1, 1)
-//        override suspend fun getMovieDetail(movieId: Int): MovieDto = detailResponse
-//
-//        override suspend fun getMovieReviews(movieId: Int, page: Int): ReviewListResponse {
-//            return ReviewListResponse(emptyList(), 1, 1, 1, 0)
-//        }
-//    }
-//
-//    private class MockMovieDao : MovieDao {
-//        private val dbMap = mutableMapOf<Int, MovieEntity>()
-//
-//        override suspend fun getAll(): List<MovieEntity> = dbMap.values.toList()
-//        override suspend fun getById(movieId: Int): MovieEntity? = dbMap[movieId]
-//
-//        override suspend fun insert(movie: MovieEntity) {
-//            dbMap[movie.id] = movie
-//        }
-//
-//        override suspend fun delete(movie: MovieEntity) {
-//            dbMap.remove(movie.id)
-//        }
-//
-//        override suspend fun deleteById(movieId: Int) {
-//            dbMap.remove(movieId)
-//        }
-//    }
 }

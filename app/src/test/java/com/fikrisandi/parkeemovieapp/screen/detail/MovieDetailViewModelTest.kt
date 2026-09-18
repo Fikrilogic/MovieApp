@@ -3,7 +3,6 @@ package com.fikrisandi.parkeemovieapp.screen.detail
 import com.fikrisandi.parkeemovieapp.domain.model.Movie
 import com.fikrisandi.parkeemovieapp.domain.model.Review
 import com.fikrisandi.parkeemovieapp.domain.model.ReviewPagination
-import com.fikrisandi.parkeemovieapp.domain.repository.MovieRepository
 import com.fikrisandi.parkeemovieapp.domain.usecase.AddFavoriteMovieUseCase
 import com.fikrisandi.parkeemovieapp.domain.usecase.GetMovieDetailUseCase
 import com.fikrisandi.parkeemovieapp.domain.usecase.GetMovieFavoriteUseCase
@@ -23,7 +22,6 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Rule
@@ -37,12 +35,16 @@ class MovieDetailViewModelTest {
 
     @MockK
     private lateinit var mockGetMovieDetailUseCase: GetMovieDetailUseCase
+
     @MockK
     private lateinit var mockGetMovieReviewUseCase: GetMovieReviewsUseCase
+
     @MockK
     private lateinit var mockAddFavoriteMovieUseCase: AddFavoriteMovieUseCase
+
     @MockK
     private lateinit var mockGetMovieFavoriteUseCase: GetMovieFavoriteUseCase
+
     @InjectMockKs
     private lateinit var viewModel: MovieDetailViewModel
     private val testDispatcher = UnconfinedTestDispatcher()
@@ -61,7 +63,14 @@ class MovieDetailViewModelTest {
     @Test
     fun `setMovieId should load movie detail and favorite status`() = runBlocking {
         val movieId = 1
-        val movie = Movie(id = movieId, title = "Detail Movie", posterPath = "", overview = "", releaseDate = "", rating = 9.0)
+        val movie = Movie(
+            id = movieId,
+            title = "Detail Movie",
+            posterPath = "",
+            overview = "",
+            releaseDate = "",
+            rating = 9.0
+        )
 
         coEvery { mockGetMovieDetailUseCase(any()) } returns movie
         coEvery { mockGetMovieFavoriteUseCase(any()) } returns movie
@@ -70,52 +79,68 @@ class MovieDetailViewModelTest {
 
         assertEquals(movie, viewModel.uiState.value.movie)
         assertTrue(viewModel.uiState.value.isFavorite)
-        coVerify(exactly = 1){ mockGetMovieDetailUseCase(movieId) }
-        coVerify(exactly = 1){ mockGetMovieFavoriteUseCase(movieId) }
+        coVerify(exactly = 1) { mockGetMovieDetailUseCase(movieId) }
+        coVerify(exactly = 1) { mockGetMovieFavoriteUseCase(movieId) }
     }
 
     @Test
-    fun `actionToFavorite should toggle favorite state and set success message when add favorite movie`() = runBlocking {
-        val movie = Movie(id = 1, title = "Favorite Movie", posterPath = "", overview = "", releaseDate = "", rating = 9.0)
+    fun `actionToFavorite should toggle favorite state and set success message when add favorite movie`() =
+        runBlocking {
+            val movie = Movie(
+                id = 1,
+                title = "Favorite Movie",
+                posterPath = "",
+                overview = "",
+                releaseDate = "",
+                rating = 9.0
+            )
 
-        coEvery { mockGetMovieDetailUseCase(movie.id) } returns movie
-        coEvery { mockGetMovieFavoriteUseCase(movie.id) } returns null
-        coEvery { mockAddFavoriteMovieUseCase(any()) } returns Unit
+            coEvery { mockGetMovieDetailUseCase(movie.id) } returns movie
+            coEvery { mockGetMovieFavoriteUseCase(movie.id) } returns null
+            coEvery { mockAddFavoriteMovieUseCase(any()) } returns Unit
 
-        viewModel.setMovieId(movie.id)
+            viewModel.setMovieId(movie.id)
 
-        viewModel.actionToFavorite()
+            viewModel.actionToFavorite()
 
-        assertTrue(viewModel.uiState.value.isFavorite)
-        assertEquals("Added to favorites", viewModel.uiState.value.toastMessage)
+            assertTrue(viewModel.uiState.value.isFavorite)
+            assertEquals("Added to favorites", viewModel.uiState.value.toastMessage)
 
-        coVerify(exactly = 1){ mockAddFavoriteMovieUseCase(movie) }
-        coVerify(exactly = 1){ mockGetMovieFavoriteUseCase(movie.id) }
-    }
+            coVerify(exactly = 1) { mockAddFavoriteMovieUseCase(movie) }
+            coVerify(exactly = 1) { mockGetMovieFavoriteUseCase(movie.id) }
+        }
 
     @Test
-    fun `actionToFavorite should toggle favorite state and set success message for unfavorite a movie`() = runBlocking {
-        val movie = Movie(id = 1, title = "Favorite Movie", posterPath = "", overview = "", releaseDate = "", rating = 9.0)
+    fun `actionToFavorite should toggle favorite state and set success message for unfavorite a movie`() =
+        runBlocking {
+            val movie = Movie(
+                id = 1,
+                title = "Favorite Movie",
+                posterPath = "",
+                overview = "",
+                releaseDate = "",
+                rating = 9.0
+            )
 
-        coEvery { mockGetMovieDetailUseCase(any()) } returns movie
-        coEvery { mockAddFavoriteMovieUseCase(any()) } returns Unit
-        coEvery { mockGetMovieFavoriteUseCase(any()) } returns movie
+            coEvery { mockGetMovieDetailUseCase(any()) } returns movie
+            coEvery { mockAddFavoriteMovieUseCase(any()) } returns Unit
+            coEvery { mockGetMovieFavoriteUseCase(any()) } returns movie
 
-        viewModel.setMovieId(movie.id)
+            viewModel.setMovieId(movie.id)
 
-        viewModel.actionToFavorite()
+            viewModel.actionToFavorite()
 
-        assertFalse(viewModel.uiState.value.isFavorite)
-        assertEquals("Removed from favorites", viewModel.uiState.value.toastMessage)
-        coVerify(exactly = 1){ mockAddFavoriteMovieUseCase(movie) }
-        coVerify(exactly = 1){ mockGetMovieFavoriteUseCase(movie.id) }
-    }
+            assertFalse(viewModel.uiState.value.isFavorite)
+            assertEquals("Removed from favorites", viewModel.uiState.value.toastMessage)
+            coVerify(exactly = 1) { mockAddFavoriteMovieUseCase(movie) }
+            coVerify(exactly = 1) { mockGetMovieFavoriteUseCase(movie.id) }
+        }
 
 
     @Test
     fun `setMovieId should load data review from movie`() = runBlocking {
         val movieId = 1
-        
+
         val dummyReviews = listOf(
             Review(id = "1", author = "Author 1", content = "Content 1", createdAt = "2026-01-01"),
             Review(id = "2", author = "Author 2", content = "Content 2", createdAt = "2026-01-02")
