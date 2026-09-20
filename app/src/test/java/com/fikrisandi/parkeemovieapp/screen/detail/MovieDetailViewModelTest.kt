@@ -8,13 +8,14 @@ import com.fikrisandi.parkeemovieapp.domain.usecase.GetMovieDetailUseCase
 import com.fikrisandi.parkeemovieapp.domain.usecase.GetMovieFavoriteUseCase
 import com.fikrisandi.parkeemovieapp.domain.usecase.GetMovieReviewsUseCase
 import io.mockk.MockKAnnotations
-import io.mockk.coEvery
-import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.verify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit4.MockKRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -72,15 +73,15 @@ class MovieDetailViewModelTest {
             rating = 9.0
         )
 
-        coEvery { mockGetMovieDetailUseCase(any()) } returns movie
-        coEvery { mockGetMovieFavoriteUseCase(any()) } returns movie
+        every { mockGetMovieDetailUseCase(any()) } returns flowOf(movie)
+        every { mockGetMovieFavoriteUseCase(any()) } returns flowOf(movie)
 
         viewModel.setMovieId(movieId)
 
         assertEquals(movie, viewModel.uiState.value.movie)
         assertTrue(viewModel.uiState.value.isFavorite)
-        coVerify(exactly = 1) { mockGetMovieDetailUseCase(movieId) }
-        coVerify(exactly = 1) { mockGetMovieFavoriteUseCase(movieId) }
+        verify(exactly = 1) { mockGetMovieDetailUseCase(movieId) }
+        verify(exactly = 1) { mockGetMovieFavoriteUseCase(movieId) }
     }
 
     @Test
@@ -95,9 +96,9 @@ class MovieDetailViewModelTest {
                 rating = 9.0
             )
 
-            coEvery { mockGetMovieDetailUseCase(movie.id) } returns movie
-            coEvery { mockGetMovieFavoriteUseCase(movie.id) } returns null
-            coEvery { mockAddFavoriteMovieUseCase(any()) } returns Unit
+            every { mockGetMovieDetailUseCase(movie.id) } returns flowOf(movie)
+            every { mockGetMovieFavoriteUseCase(movie.id) } returns flowOf(null)
+            every { mockAddFavoriteMovieUseCase(any()) } returns flowOf(Unit)
 
             viewModel.setMovieId(movie.id)
 
@@ -106,8 +107,8 @@ class MovieDetailViewModelTest {
             assertTrue(viewModel.uiState.value.isFavorite)
             assertEquals("Added to favorites", viewModel.uiState.value.toastMessage)
 
-            coVerify(exactly = 1) { mockAddFavoriteMovieUseCase(movie) }
-            coVerify(exactly = 1) { mockGetMovieFavoriteUseCase(movie.id) }
+            verify(exactly = 1) { mockAddFavoriteMovieUseCase(movie) }
+            verify(exactly = 1) { mockGetMovieFavoriteUseCase(movie.id) }
         }
 
     @Test
@@ -122,9 +123,9 @@ class MovieDetailViewModelTest {
                 rating = 9.0
             )
 
-            coEvery { mockGetMovieDetailUseCase(any()) } returns movie
-            coEvery { mockAddFavoriteMovieUseCase(any()) } returns Unit
-            coEvery { mockGetMovieFavoriteUseCase(any()) } returns movie
+            every { mockGetMovieDetailUseCase(any()) } returns flowOf(movie)
+            every { mockAddFavoriteMovieUseCase(any()) } returns flowOf(Unit)
+            every { mockGetMovieFavoriteUseCase(any()) } returns flowOf(movie)
 
             viewModel.setMovieId(movie.id)
 
@@ -132,8 +133,8 @@ class MovieDetailViewModelTest {
 
             assertFalse(viewModel.uiState.value.isFavorite)
             assertEquals("Removed from favorites", viewModel.uiState.value.toastMessage)
-            coVerify(exactly = 1) { mockAddFavoriteMovieUseCase(movie) }
-            coVerify(exactly = 1) { mockGetMovieFavoriteUseCase(movie.id) }
+            verify(exactly = 1) { mockAddFavoriteMovieUseCase(movie) }
+            verify(exactly = 1) { mockGetMovieFavoriteUseCase(movie.id) }
         }
 
 
@@ -153,12 +154,12 @@ class MovieDetailViewModelTest {
             totalResults = 2
         )
 
-        coEvery { mockGetMovieReviewUseCase(any(), any()) } returns listReview
+        every { mockGetMovieReviewUseCase(any(), any()) } returns flowOf(listReview)
 
         viewModel.setMovieId(movieId)
 
         assertEquals(2, viewModel.uiState.value.reviews.size)
         assertEquals("Author 1", viewModel.uiState.value.reviews[0].author)
-        coVerify(exactly = 1) { mockGetMovieReviewUseCase(movieId, 1) }
+        verify(exactly = 1) { mockGetMovieReviewUseCase(movieId, 1) }
     }
 }

@@ -3,13 +3,15 @@ package com.fikrisandi.parkeemovieapp.screen.favorite
 import com.fikrisandi.parkeemovieapp.domain.model.Movie
 import com.fikrisandi.parkeemovieapp.domain.usecase.GetMoviesFavoriteUseCase
 import io.mockk.MockKAnnotations
-import io.mockk.coEvery
-import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.verify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit4.MockKRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -64,7 +66,7 @@ class MovieFavoriteViewModelTest {
             rating = 7.5
         )
 
-        coEvery { getMoviesFavoriteUseCase() } returns listOf(movie1, movie2)
+        every { getMoviesFavoriteUseCase() } returns flowOf(listOf(movie1, movie2))
 
         viewModel.loadMoviesFavorite()
 
@@ -73,13 +75,13 @@ class MovieFavoriteViewModelTest {
         assertEquals(2, currentState.moviesFavorite.size)
         assertEquals("Movie 1", currentState.moviesFavorite[0].title)
 
-        coVerify(exactly = 1) { getMoviesFavoriteUseCase() }
+        verify(exactly = 1) { getMoviesFavoriteUseCase() }
     }
 
     @Test
     fun `loadMoviesFavorite should handle error transparently and reset loading state`() =
         runBlocking {
-            coEvery { getMoviesFavoriteUseCase() } throws Exception("Test error")
+            every { getMoviesFavoriteUseCase() } returns flow { throw Exception("Test error") }
 
             viewModel.loadMoviesFavorite()
 

@@ -1,15 +1,16 @@
 package com.fikrisandi.parkeemovieapp.domain.usecase
 
+import android.util.Log
 import com.fikrisandi.parkeemovieapp.domain.model.Movie
 import com.fikrisandi.parkeemovieapp.domain.repository.MovieRepository
 import io.mockk.MockKAnnotations
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit4.MockKRule
-import io.mockk.just
-import io.mockk.runs
+import io.mockk.mockkStatic
 import kotlinx.coroutines.runBlocking
 import org.junit.Before
 import org.junit.Rule
@@ -29,6 +30,8 @@ class AddFavoriteMovieUseCaseTest {
     @Before
     fun setUp() {
         MockKAnnotations.init(this)
+        mockkStatic(Log::class)
+        every { Log.d(any(), any()) } returns 0
     }
 
     @Test
@@ -42,10 +45,10 @@ class AddFavoriteMovieUseCaseTest {
             rating = 8.5
         )
 
-        coEvery { mockMovieRepository.getFavoriteMovie(any()) } returns null
-        coEvery { mockMovieRepository.addFavoriteMovie(any()) } just runs
+        coEvery { mockMovieRepository.getFavoriteMovie(any()) } returns Result.success(null)
+        coEvery { mockMovieRepository.addFavoriteMovie(any()) } returns Result.success(Unit)
 
-        mockAddFavoriteMovieUseCase(movie)
+        mockAddFavoriteMovieUseCase(movie).collect {}
 
         coVerify(exactly = 1) { mockMovieRepository.getFavoriteMovie(movie.id) }
         coVerify(exactly = 1) { mockMovieRepository.addFavoriteMovie(movie) }
@@ -64,10 +67,10 @@ class AddFavoriteMovieUseCaseTest {
             rating = 7.0
         )
 
-        coEvery { mockMovieRepository.getFavoriteMovie(any()) } returns movie
-        coEvery { mockMovieRepository.deleteFavoriteMovie(any()) } just runs
+        coEvery { mockMovieRepository.getFavoriteMovie(any()) } returns Result.success(movie)
+        coEvery { mockMovieRepository.deleteFavoriteMovie(any()) } returns Result.success(Unit)
 
-        mockAddFavoriteMovieUseCase(movie)
+        mockAddFavoriteMovieUseCase(movie).collect {}
 
         coVerify(exactly = 1) { mockMovieRepository.getFavoriteMovie(movie.id) }
         coVerify(exactly = 1) { mockMovieRepository.deleteFavoriteMovie(movie) }

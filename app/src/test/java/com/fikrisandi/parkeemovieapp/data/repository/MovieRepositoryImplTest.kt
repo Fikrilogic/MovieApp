@@ -55,11 +55,24 @@ class MovieRepositoryImplTest {
         coEvery { mockMovieService.getPopularMovies(1) } returns response
         val result = repository.getMoviesPopular(page = 1)
 
-        assertEquals(1, result.second) // page
-        assertEquals(1, result.first.size)
-        assertEquals("Popular DTO", result.first[0].title)
-        assertEquals(8.0, result.first[0].rating, 0.0)
+        assertTrue(result.isSuccess)
+        val data = result.getOrThrow()
+        assertEquals(1, data.second) // page
+        assertEquals(1, data.first.size)
+        assertEquals("Popular DTO", data.first[0].title)
+        assertEquals(8.0, data.first[0].rating, 0.0)
         coVerify(exactly = 1) { mockMovieService.getPopularMovies(1) }
+    }
+
+    @Test
+    fun `getMoviesPopular should return failure when service throws exception`() = runBlocking {
+        val exception = RuntimeException("Network Error")
+        coEvery { mockMovieService.getPopularMovies(1) } throws exception
+
+        val result = repository.getMoviesPopular(page = 1)
+
+        assertTrue(result.isFailure)
+        assertEquals(exception, result.exceptionOrNull())
     }
 
     @Test
@@ -77,10 +90,12 @@ class MovieRepositoryImplTest {
         coEvery { mockMovieService.getNowPlayingMovies(2) } returns response
         val result = repository.getMoviesNowPlaying(page = 2)
 
-        assertEquals(2, result.second) // page
-        assertEquals(1, result.first.size)
-        assertEquals("Now Playing DTO", result.first[0].title)
-        assertEquals(8.0, result.first[0].rating, 0.0)
+        assertTrue(result.isSuccess)
+        val data = result.getOrThrow()
+        assertEquals(2, data.second) // page
+        assertEquals(1, data.first.size)
+        assertEquals("Now Playing DTO", data.first[0].title)
+        assertEquals(8.0, data.first[0].rating, 0.0)
         coVerify(exactly = 1) { mockMovieService.getNowPlayingMovies(2) }
     }
 
@@ -99,10 +114,12 @@ class MovieRepositoryImplTest {
         coEvery { mockMovieService.getTopRatedMovies(1) } returns response
         val result = repository.getMoviesTopRated(page = 1)
 
-        assertEquals(1, result.second) // page
-        assertEquals(1, result.first.size)
-        assertEquals("Top Rated DTO", result.first[0].title)
-        assertEquals(8.0, result.first[0].rating, 0.0)
+        assertTrue(result.isSuccess)
+        val data = result.getOrThrow()
+        assertEquals(1, data.second) // page
+        assertEquals(1, data.first.size)
+        assertEquals("Top Rated DTO", data.first[0].title)
+        assertEquals(8.0, data.first[0].rating, 0.0)
         coVerify(exactly = 1) { mockMovieService.getTopRatedMovies(1) }
     }
 
@@ -122,10 +139,12 @@ class MovieRepositoryImplTest {
 
         val result = repository.getMovieDetail(movieId = movieId)
 
-        assertEquals(12, result.id)
-        assertEquals("Detail DTO", result.title)
-        assertTrue(posterPath, result.posterPath.contains(posterPath))
-        assertEquals("2026-01-01", result.releaseDate)
+        assertTrue(result.isSuccess)
+        val data = result.getOrThrow()
+        assertEquals(12, data.id)
+        assertEquals("Detail DTO", data.title)
+        assertTrue(data.posterPath.contains(posterPath))
+        assertEquals("2026-01-01", data.releaseDate)
         coVerify(exactly = 1) { mockMovieService.getMovieDetail(movieId) }
     }
 
@@ -151,11 +170,34 @@ class MovieRepositoryImplTest {
 
         coEvery { mockMovieDao.getAll() } returns listOf(entity1, entity2)
 
-        val favorites = repository.getFavoriteMovies()
+        val result = repository.getFavoriteMovies()
 
+        assertTrue(result.isSuccess)
+        val favorites = result.getOrThrow()
         assertEquals(2, favorites.size)
         assertEquals("Local 1", favorites[0].title)
         coVerify(exactly = 1) { mockMovieDao.getAll() }
+    }
+
+    @Test
+    fun `getFavoriteMovie by id should load from DAO and return success result`() = runBlocking {
+        val movieId = 1
+        val entity = MovieEntity(
+            id = movieId,
+            title = "Local Movie",
+            posterPath = "",
+            overview = "",
+            releaseDate = "",
+            rating = 8.0
+        )
+
+        coEvery { mockMovieDao.getById(movieId) } returns entity
+
+        val result = repository.getFavoriteMovie(movieId)
+
+        assertTrue(result.isSuccess)
+        assertEquals("Local Movie", result.getOrThrow()?.title)
+        coVerify(exactly = 1) { mockMovieDao.getById(movieId) }
     }
 
     @Test
@@ -181,8 +223,9 @@ class MovieRepositoryImplTest {
 
             coEvery { mockMovieDao.insert(any()) } just runs
 
-            repository.addFavoriteMovie(domainMovie)
+            val result = repository.addFavoriteMovie(domainMovie)
 
+            assertTrue(result.isSuccess)
             coVerify(exactly = 1) { mockMovieDao.insert(expectedEntity) }
         }
 
@@ -198,20 +241,12 @@ class MovieRepositoryImplTest {
                 releaseDate = "2026",
                 rating = 9.9
             )
-            val expectedEntity = MovieEntity(
-                id = 55,
-                title = "To Store",
-                posterPath = "pic.png",
-                overview = "txt",
-                releaseDate = "2026",
-                rating = 9.9
-            )
-
 
             coEvery { mockMovieDao.deleteById(any()) } just runs
 
-            repository.deleteFavoriteMovie(domainMovie)
+            val result = repository.deleteFavoriteMovie(domainMovie)
 
+            assertTrue(result.isSuccess)
             coVerify(exactly = 1) { mockMovieDao.deleteById(55) }
         }
 

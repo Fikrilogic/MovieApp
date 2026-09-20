@@ -5,13 +5,15 @@ import com.fikrisandi.parkeemovieapp.domain.usecase.GetMoviesNowPlayingUseCase
 import com.fikrisandi.parkeemovieapp.domain.usecase.GetMoviesPopularUseCase
 import com.fikrisandi.parkeemovieapp.domain.usecase.GetMoviesTopRatedUseCase
 import io.mockk.MockKAnnotations
-import io.mockk.coEvery
-import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.verify
 import io.mockk.impl.annotations.InjectMockKs
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit4.MockKRule
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -66,7 +68,7 @@ class HomeViewModelTest {
                 rating = 8.0
             )
 
-            coEvery { getMoviesPopularUseCase(any()) } returns Pair(listOf(movie), 1)
+            every { getMoviesPopularUseCase(any()) } returns flowOf(Pair(listOf(movie), 1))
 
             viewModel.loadMoviesPopular()
 
@@ -76,7 +78,7 @@ class HomeViewModelTest {
             assertEquals(2, state.moviesPopular.page)
             assertEquals("Popular Movie", state.moviesPopular.movies[0].title)
 
-            coVerify(exactly = 1) { getMoviesPopularUseCase(1) }
+            verify(exactly = 1) { getMoviesPopularUseCase(1) }
         }
 
     @Test
@@ -90,7 +92,7 @@ class HomeViewModelTest {
             rating = 9.0
         )
 
-        coEvery { getMoviesTopRatedUseCase(any()) } returns Pair(listOf(movie), 1)
+        every { getMoviesTopRatedUseCase(any()) } returns flowOf(Pair(listOf(movie), 1))
 
         viewModel.loadMoviesTopRated()
 
@@ -100,7 +102,7 @@ class HomeViewModelTest {
         assertEquals(2, state.moviesTopRated.page)
         assertEquals("Top Rated Movie", state.moviesTopRated.movies[0].title)
 
-        coVerify(exactly = 1) { getMoviesTopRatedUseCase(1) }
+        verify(exactly = 1) { getMoviesTopRatedUseCase(1) }
     }
 
     @Test
@@ -114,7 +116,7 @@ class HomeViewModelTest {
             rating = 7.0
         )
 
-        coEvery { getMoviesNowPlayingUseCase(any()) } returns Pair(listOf(movie), 1)
+        every { getMoviesNowPlayingUseCase(any()) } returns flowOf(Pair(listOf(movie), 1))
 
         viewModel.loadMoviesNowPlaying()
 
@@ -124,13 +126,13 @@ class HomeViewModelTest {
         assertEquals(2, state.moviesNowPlaying.page)
         assertEquals("Now Playing Movie", state.moviesNowPlaying.movies[0].title)
 
-        coVerify(exactly = 1) { getMoviesNowPlayingUseCase(1) }
+        verify(exactly = 1) { getMoviesNowPlayingUseCase(1) }
     }
 
     @Test
     fun `loadMoviesPopular should safely handle exception and clear loading flag`() = runBlocking {
 
-        coEvery { getMoviesPopularUseCase(any()) } throws Exception("Network error")
+        every { getMoviesPopularUseCase(any()) } returns flow { throw Exception("Network error") }
 
         viewModel.loadMoviesPopular()
 
@@ -138,13 +140,13 @@ class HomeViewModelTest {
         assertFalse(state.loadingPopularMovie)
         assertEquals(0, state.moviesPopular.movies.size)
 
-        coVerify(exactly = 1) { getMoviesPopularUseCase(1) }
+        verify(exactly = 1) { getMoviesPopularUseCase(1) }
     }
 
     @Test
     fun `loadMoviesTopRated should safely handle exception and clear loading flag`() = runBlocking {
 
-        coEvery { getMoviesTopRatedUseCase(any()) } throws Exception("Network error")
+        every { getMoviesTopRatedUseCase(any()) } returns flow { throw Exception("Network error") }
 
         viewModel.loadMoviesTopRated()
 
@@ -152,14 +154,14 @@ class HomeViewModelTest {
         assertFalse(state.loadingTopRatedMovie)
         assertEquals(0, state.moviesTopRated.movies.size)
 
-        coVerify(exactly = 1) { getMoviesTopRatedUseCase(1) }
+        verify(exactly = 1) { getMoviesTopRatedUseCase(1) }
     }
 
     @Test
     fun `loadMoviesNowPlaying should safely handle exception and clear loading flag`() =
         runBlocking {
 
-            coEvery { getMoviesNowPlayingUseCase(any()) } throws Exception("Network error")
+            every { getMoviesNowPlayingUseCase(any()) } returns flow { throw Exception("Network error") }
 
             viewModel.loadMoviesNowPlaying()
 
@@ -167,6 +169,6 @@ class HomeViewModelTest {
             assertFalse(state.loadingNowPlayingMovie)
             assertEquals(0, state.moviesNowPlaying.movies.size)
 
-            coVerify(exactly = 1) { getMoviesNowPlayingUseCase(1) }
+            verify(exactly = 1) { getMoviesNowPlayingUseCase(1) }
         }
 }

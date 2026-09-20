@@ -1,11 +1,5 @@
 package com.fikrisandi.parkeemovieapp.screen.home
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,8 +38,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -61,40 +53,6 @@ import com.fikrisandi.parkeemovieapp.BuildConfig
 import com.fikrisandi.parkeemovieapp.domain.model.Movie
 import com.fikrisandi.parkeemovieapp.ui.component.ShimmerCardItem
 import com.fikrisandi.parkeemovieapp.ui.component.ShimmerImageItem
-
-@Composable
-fun shimmerBrush(showShimmer: Boolean = true, targetValue: Float = 1000f): Brush {
-    return if (showShimmer) {
-        val shimmerColors = listOf(
-            Color.LightGray.copy(alpha = 0.6f),
-            Color.LightGray.copy(alpha = 0.2f),
-            Color.LightGray.copy(alpha = 0.6f),
-        )
-
-        val transition = rememberInfiniteTransition(label = "ShimmerTransition")
-        val translateAnimation = transition.animateFloat(
-            initialValue = 0f,
-            targetValue = targetValue,
-            animationSpec = infiniteRepeatable(
-                animation = tween(durationMillis = 1000, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart
-            ),
-            label = "ShimmerTranslate"
-        )
-
-        Brush.linearGradient(
-            colors = shimmerColors,
-            start = Offset.Zero,
-            end = Offset(x = translateAnimation.value, y = translateAnimation.value)
-        )
-    } else {
-        Brush.linearGradient(
-            colors = listOf(Color.Transparent, Color.Transparent),
-            start = Offset.Zero,
-            end = Offset.Zero
-        )
-    }
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -112,7 +70,7 @@ fun HomeScreen(
             val lastVisibleItemIndex =
                 listRowPopularMovie.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val totalItemsCount = listRowPopularMovie.layoutInfo.totalItemsCount
-            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingPopularMovie
+            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingPopularMovie && uiState.moviesPopular.movies.isNotEmpty()
         }
     }
 
@@ -121,7 +79,7 @@ fun HomeScreen(
             val lastVisibleItemIndex =
                 listRowTopRatedMovie.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val totalItemsCount = listRowTopRatedMovie.layoutInfo.totalItemsCount
-            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingTopRatedMovie
+            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingTopRatedMovie && uiState.moviesTopRated.movies.isNotEmpty()
         }
     }
     val isLoadMoreMovieNowPlaying = remember {
@@ -129,7 +87,7 @@ fun HomeScreen(
             val lastVisibleItemIndex =
                 listRowNowPlayingMovie.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val totalItemsCount = listRowNowPlayingMovie.layoutInfo.totalItemsCount
-            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingNowPlayingMovie
+            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingNowPlayingMovie && uiState.moviesNowPlaying.movies.isNotEmpty()
         }
     }
 
@@ -183,7 +141,6 @@ fun HomeContent(
     onMovieClicked: (Movie) -> Unit = {},
     onActionToolbar: () -> Unit = {}
 ) {
-    val brush = shimmerBrush()
 
     Scaffold(
         topBar = {
@@ -201,216 +158,221 @@ fun HomeContent(
             )
         }
     ) { paddingValues ->
-        val isAllCategoriesEmpty = !uiState.loadingPopularMovie && uiState.moviesPopular.movies.isEmpty() &&
-                !uiState.loadingTopRatedMovie && uiState.moviesTopRated.movies.isEmpty() &&
-                !uiState.loadingNowPlayingMovie && uiState.moviesNowPlaying.movies.isEmpty()
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
 
-        if (isAllCategoriesEmpty) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No movies available.",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 20.dp)
+                ) {
+                    Text(
+                        "Popular Movie",
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    when {
+                        !uiState.loadingPopularMovie && uiState.moviesPopular.movies.isEmpty() -> {
+                            EmptyMovie(modifier = Modifier)
+                        }
+
+                        else -> {
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(250.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                state = listMoviePopularRowState
+                            ) {
+                                when {
+                                    uiState.loadingPopularMovie && uiState.moviesPopular.movies.isEmpty() -> {
+                                        items(3) {
+                                            ShimmerImageItem()
+                                        }
+                                    }
+
+                                    !uiState.loadingPopularMovie && uiState.moviesPopular.movies.isEmpty() -> {
+                                        item {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillParentMaxWidth()
+                                                    .height(250.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "No popular movies found.",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.outline
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    else -> {
+                                        items(uiState.moviesPopular.movies.size) { item ->
+                                            val movie = uiState.moviesPopular.movies[item]
+                                            MovieImageItem(
+                                                movie = movie,
+                                                onClick = {
+                                                    onMovieClicked(movie)
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                }
             }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-            ) {
 
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 20.dp)
-                    ) {
-                        Text(
-                            "Popular Movie",
-                            modifier = Modifier.padding(horizontal = 20.dp),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LazyRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(250.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            state = listMoviePopularRowState
-                        ) {
-                            when {
-                                uiState.loadingPopularMovie && uiState.moviesPopular.movies.isEmpty() -> {
-                                    items(3) {
-                                        ShimmerImageItem(brush = brush)
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 20.dp)
+                ) {
+                    Text(
+                        "Top Rated",
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    when {
+                        !uiState.loadingTopRatedMovie && uiState.moviesTopRated.movies.isEmpty() -> {
+                            EmptyMovie(modifier = Modifier)
+                        }
+
+                        else -> {
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                state = listRowTopRatedMovie
+                            ) {
+
+                                when {
+                                    uiState.loadingTopRatedMovie && uiState.moviesTopRated.movies.isEmpty() -> {
+                                        items(4) {
+                                            ShimmerCardItem()
+                                        }
                                     }
-                                }
 
-                                !uiState.loadingPopularMovie && uiState.moviesPopular.movies.isEmpty() -> {
-                                    item {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillParentMaxWidth()
-                                                .height(250.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = "No popular movies found.",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.outline
+                                    !uiState.loadingTopRatedMovie && uiState.moviesTopRated.movies.isEmpty() -> {
+                                        item {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillParentMaxWidth()
+                                                    .height(200.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "No top rated movies found.",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.outline
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    else -> {
+                                        items(uiState.moviesTopRated.movies.size) { item ->
+                                            val movie = uiState.moviesTopRated.movies[item]
+                                            MovieItem(
+                                                movie = movie,
+                                                onClick = {
+                                                    onMovieClicked(movie)
+                                                }
                                             )
                                         }
                                     }
                                 }
-
-                                else -> {
-                                    items(uiState.moviesPopular.movies.size) { item ->
-                                        val movie = uiState.moviesPopular.movies[item]
-                                        MovieImageItem(
-                                            movie = movie,
-                                            onClick = {
-                                                onMovieClicked(movie)
-                                            }
-                                        )
-                                    }
-                                }
                             }
                         }
-
                     }
                 }
-
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 20.dp)
-                    ) {
-                        Text(
-                            "Top Rated",
-                            modifier = Modifier.padding(horizontal = 20.dp),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LazyRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            state = listRowTopRatedMovie
-                        ) {
-
-                            when {
-                                uiState.loadingTopRatedMovie && uiState.moviesTopRated.movies.isEmpty() -> {
-                                    items(4) {
-                                        ShimmerCardItem(brush = brush)
-                                    }
-                                }
-
-                                !uiState.loadingTopRatedMovie && uiState.moviesTopRated.movies.isEmpty() -> {
-                                    item {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillParentMaxWidth()
-                                                .height(200.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = "No top rated movies found.",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.outline
-                                            )
-                                        }
-                                    }
-                                }
-
-                                else -> {
-                                    items(uiState.moviesTopRated.movies.size) { item ->
-                                        val movie = uiState.moviesTopRated.movies[item]
-                                        MovieItem(
-                                            movie = movie,
-                                            onClick = {
-                                                onMovieClicked(movie)
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                }
-
-                item {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 20.dp)
-                    ) {
-                        Text(
-                            "Now Playing",
-                            modifier = Modifier.padding(horizontal = 20.dp),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LazyRow(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            contentPadding = PaddingValues(horizontal = 16.dp),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            state = listRowNowPlayingMovie
-                        ) {
-
-                            when {
-                                uiState.loadingNowPlayingMovie && uiState.moviesNowPlaying.movies.isEmpty() -> {
-                                    items(4) {
-                                        ShimmerCardItem(brush = brush)
-                                    }
-                                }
-
-                                !uiState.loadingNowPlayingMovie && uiState.moviesNowPlaying.movies.isEmpty() -> {
-                                    item {
-                                        Box(
-                                            modifier = Modifier
-                                                .fillParentMaxWidth()
-                                                .height(200.dp),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = "No movies playing now found.",
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.outline
-                                            )
-                                        }
-                                    }
-                                }
-
-                                else -> {
-                                    items(uiState.moviesNowPlaying.movies.size) { item ->
-                                        val movie = uiState.moviesNowPlaying.movies[item]
-                                        MovieItem(
-                                            movie = movie,
-                                            onClick = {
-                                                onMovieClicked(movie)
-                                            }
-                                        )
-                                    }
-                                }
-                            }
-                        }
-
-                    }
-                }
-
             }
+
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 20.dp)
+                ) {
+                    Text(
+                        "Now Playing",
+                        modifier = Modifier.padding(horizontal = 20.dp),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    when {
+                        !uiState.loadingNowPlayingMovie && uiState.moviesNowPlaying.movies.isEmpty() -> {
+                            EmptyMovie(modifier = Modifier)
+                        }
+
+                        else -> {
+                            LazyRow(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp),
+                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                state = listRowNowPlayingMovie
+                            ) {
+
+                                when {
+                                    uiState.loadingNowPlayingMovie && uiState.moviesNowPlaying.movies.isEmpty() -> {
+                                        items(4) {
+                                            ShimmerCardItem()
+                                        }
+                                    }
+
+                                    !uiState.loadingNowPlayingMovie && uiState.moviesNowPlaying.movies.isEmpty() -> {
+                                        item {
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillParentMaxWidth()
+                                                    .height(200.dp),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(
+                                                    text = "No movies playing now found.",
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    color = MaterialTheme.colorScheme.outline
+                                                )
+                                            }
+                                        }
+                                    }
+
+                                    else -> {
+                                        items(uiState.moviesNowPlaying.movies.size) { item ->
+                                            val movie = uiState.moviesNowPlaying.movies[item]
+                                            MovieItem(
+                                                movie = movie,
+                                                onClick = {
+                                                    onMovieClicked(movie)
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
         }
     }
 }
@@ -508,5 +470,21 @@ fun MovieImageItem(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun EmptyMovie(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(100.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "No movies available.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

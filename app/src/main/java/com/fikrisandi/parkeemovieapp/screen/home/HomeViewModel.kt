@@ -1,5 +1,6 @@
 package com.fikrisandi.parkeemovieapp.screen.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.fikrisandi.parkeemovieapp.domain.usecase.GetMoviesNowPlayingUseCase
@@ -70,6 +71,7 @@ class HomeViewModel @Inject constructor(
 
     fun loadMoviesNowPlaying() {
         if (_uiState.value.loadingNowPlayingMovie) return
+        Log.d("tagg", "loadMoviesNowPlaying: call")
         viewModelScope.launch {
             _uiState.update { it.copy(loadingNowPlayingMovie = true) }
             try {
