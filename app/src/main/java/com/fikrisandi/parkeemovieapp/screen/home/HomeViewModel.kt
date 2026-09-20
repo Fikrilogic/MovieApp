@@ -76,7 +76,6 @@ class HomeViewModel @Inject constructor(
 
     fun loadMoviesNowPlaying() {
         if (_uiState.value.loadingNowPlayingMovie) return
-        Log.d("tagg", "loadMoviesNowPlaying: call")
         viewModelScope.launch {
             _uiState.update { it.copy(loadingNowPlayingMovie = true) }
             try {
