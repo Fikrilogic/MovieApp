@@ -63,6 +63,50 @@ class MovieRepositoryImplTest {
     }
 
     @Test
+    fun `getMoviesNowPlaying should request remote server and map DTO data correctly with page 2 and total page 5`() = runBlocking {
+        val dto = MovieDto(
+            id = 1,
+            title = "Now Playing DTO",
+            posterPath = "/path.jpg",
+            overview = "Overview",
+            releaseDate = "2026",
+            voteAverage = 8.0
+        )
+        val response = MovieListResponse(results = listOf(dto), page = 2, totalPages = 5)
+
+        coEvery { mockMovieService.getNowPlayingMovies(2) } returns response
+        val result = repository.getMoviesNowPlaying(page = 2)
+
+        assertEquals(2, result.second) // page
+        assertEquals(1, result.first.size)
+        assertEquals("Now Playing DTO", result.first[0].title)
+        assertEquals(8.0, result.first[0].rating, 0.0)
+        coVerify(exactly = 1) { mockMovieService.getNowPlayingMovies(2) }
+    }
+
+    @Test
+    fun `getMoviesTopRated should request remote server and map DTO data correctly`() = runBlocking {
+        val dto = MovieDto(
+            id = 1,
+            title = "Top Rated DTO",
+            posterPath = "/path.jpg",
+            overview = "Overview",
+            releaseDate = "2026",
+            voteAverage = 8.0
+        )
+        val response = MovieListResponse(results = listOf(dto), page = 1, totalPages = 5)
+
+        coEvery { mockMovieService.getTopRatedMovies(1) } returns response
+        val result = repository.getMoviesTopRated(page = 1)
+
+        assertEquals(1, result.second) // page
+        assertEquals(1, result.first.size)
+        assertEquals("Top Rated DTO", result.first[0].title)
+        assertEquals(8.0, result.first[0].rating, 0.0)
+        coVerify(exactly = 1) { mockMovieService.getTopRatedMovies(1) }
+    }
+
+    @Test
     fun `getMovieDetail should contact service and map parameters safely`() = runBlocking {
         val movieId = 12
         val posterPath = "/test_path.jpg"
