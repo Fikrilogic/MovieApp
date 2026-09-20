@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -29,7 +30,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(loadingPopularMovie = true) }
             try {
-                getMoviesPopularUseCase(_uiState.value.moviesPopular.page).collect { newMovies ->
+                getMoviesPopularUseCase(_uiState.value.moviesPopular.page).catch { err ->
+                    _uiState.update { it.copy(errorPopularMovie = err) }
+                }.collect { newMovies ->
                     _uiState.update {
                         it.copy(
                             moviesPopular = it.moviesPopular.copy(
@@ -52,7 +55,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(loadingTopRatedMovie = true) }
             try {
-                getMoviesTopRatedUseCase(_uiState.value.moviesTopRated.page).collect { newMovies ->
+                getMoviesTopRatedUseCase(_uiState.value.moviesTopRated.page).catch { err ->
+                    _uiState.update { it.copy(errorTopRatedMovie = err) }
+                }.collect { newMovies ->
                     _uiState.update {
                         it.copy(
                             moviesTopRated = it.moviesTopRated.copy(
@@ -75,7 +80,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(loadingNowPlayingMovie = true) }
             try {
-                getMoviesNowPlayingUseCase(_uiState.value.moviesNowPlaying.page).collect { newMovies ->
+                getMoviesNowPlayingUseCase(_uiState.value.moviesNowPlaying.page).catch { err ->
+                    _uiState.update { it.copy(errorNowPlayingMovie = err) }
+                }.collect { newMovies ->
                     _uiState.update {
                         it.copy(
                             moviesNowPlaying = it.moviesNowPlaying.copy(

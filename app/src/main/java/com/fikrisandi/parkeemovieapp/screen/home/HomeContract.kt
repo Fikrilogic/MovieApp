@@ -10,6 +10,9 @@ data class HomeUiState(
     val loadingPopularMovie: Boolean = false,
     val loadingTopRatedMovie: Boolean = false,
     val loadingNowPlayingMovie: Boolean = false,
+    val errorPopularMovie: Throwable? = null,
+    val errorTopRatedMovie: Throwable? = null,
+    val errorNowPlayingMovie: Throwable? = null,
 )
 
 data class PaginationMovie(

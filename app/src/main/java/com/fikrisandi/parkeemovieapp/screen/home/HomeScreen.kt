@@ -70,7 +70,7 @@ fun HomeScreen(
             val lastVisibleItemIndex =
                 listRowPopularMovie.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val totalItemsCount = listRowPopularMovie.layoutInfo.totalItemsCount
-            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingPopularMovie && uiState.moviesPopular.movies.isNotEmpty()
+            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingPopularMovie && uiState.moviesPopular.movies.isNotEmpty() && uiState.errorPopularMovie == null
         }
     }
 
@@ -79,7 +79,7 @@ fun HomeScreen(
             val lastVisibleItemIndex =
                 listRowTopRatedMovie.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val totalItemsCount = listRowTopRatedMovie.layoutInfo.totalItemsCount
-            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingTopRatedMovie && uiState.moviesTopRated.movies.isNotEmpty()
+            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingTopRatedMovie && uiState.moviesTopRated.movies.isNotEmpty() && uiState.errorTopRatedMovie == null
         }
     }
     val isLoadMoreMovieNowPlaying = remember {
@@ -87,7 +87,7 @@ fun HomeScreen(
             val lastVisibleItemIndex =
                 listRowNowPlayingMovie.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
             val totalItemsCount = listRowNowPlayingMovie.layoutInfo.totalItemsCount
-            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingNowPlayingMovie && uiState.moviesNowPlaying.movies.isNotEmpty()
+            lastVisibleItemIndex >= totalItemsCount - 5 && totalItemsCount > 0 && !uiState.loadingNowPlayingMovie && uiState.moviesNowPlaying.movies.isNotEmpty() && uiState.errorNowPlayingMovie == null
         }
     }
 
