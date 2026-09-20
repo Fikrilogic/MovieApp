@@ -132,12 +132,13 @@ class HomeViewModelTest {
     @Test
     fun `loadMoviesPopular should safely handle exception and clear loading flag`() = runBlocking {
 
-        every { getMoviesPopularUseCase(any()) } returns flow { throw Exception("Network error") }
+        val err = Exception("Network error")
+        every { getMoviesPopularUseCase(any()) } returns flow { throw err }
 
         viewModel.loadMoviesPopular()
 
         val state = viewModel.uiState.value
-        assertFalse(state.loadingPopularMovie)
+        assertEquals(err,state.errorPopularMovie)
         assertEquals(0, state.moviesPopular.movies.size)
 
         verify(exactly = 1) { getMoviesPopularUseCase(1) }
@@ -145,13 +146,13 @@ class HomeViewModelTest {
 
     @Test
     fun `loadMoviesTopRated should safely handle exception and clear loading flag`() = runBlocking {
-
-        every { getMoviesTopRatedUseCase(any()) } returns flow { throw Exception("Network error") }
+        val err = Exception("Network error")
+        every { getMoviesTopRatedUseCase(any()) } returns flow { throw err }
 
         viewModel.loadMoviesTopRated()
 
         val state = viewModel.uiState.value
-        assertFalse(state.loadingTopRatedMovie)
+        assertEquals(err,state.errorTopRatedMovie)
         assertEquals(0, state.moviesTopRated.movies.size)
 
         verify(exactly = 1) { getMoviesTopRatedUseCase(1) }
@@ -160,13 +161,13 @@ class HomeViewModelTest {
     @Test
     fun `loadMoviesNowPlaying should safely handle exception and clear loading flag`() =
         runBlocking {
-
-            every { getMoviesNowPlayingUseCase(any()) } returns flow { throw Exception("Network error") }
+            val err = Exception("Network error")
+            every { getMoviesNowPlayingUseCase(any()) } returns flow { throw err}
 
             viewModel.loadMoviesNowPlaying()
 
             val state = viewModel.uiState.value
-            assertFalse(state.loadingNowPlayingMovie)
+            assertEquals(err,state.errorNowPlayingMovie)
             assertEquals(0, state.moviesNowPlaying.movies.size)
 
             verify(exactly = 1) { getMoviesNowPlayingUseCase(1) }
