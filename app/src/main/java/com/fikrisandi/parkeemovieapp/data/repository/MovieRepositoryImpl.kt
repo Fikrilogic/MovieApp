@@ -18,43 +18,82 @@ class MovieRepositoryImpl @Inject constructor(
     private val movieDao: MovieDao
 ) : MovieRepository {
 
-    override suspend fun getMoviesPopular(page: Int): Pair<List<Movie>, Int> {
-        val data = movieService.getPopularMovies(page)
-        return Pair(data.results.map { it.toDomain() }, data.page)
+    override suspend fun getMoviesPopular(page: Int): Result<Pair<List<Movie>, Int>> {
+        try {
+            val data = movieService.getPopularMovies(page)
+            return Result.success(Pair(data.results.map { it.toDomain() }, data.page))
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
     }
 
-    override suspend fun getMoviesNowPlaying(page: Int): Pair<List<Movie>, Int> {
-        val data = movieService.getNowPlayingMovies(page)
-        return Pair(data.results.map { it.toDomain() }, data.page)
+    override suspend fun getMoviesNowPlaying(page: Int): Result<Pair<List<Movie>, Int>> {
+        try {
+            val data = movieService.getNowPlayingMovies(page)
+            return Result.success(Pair(data.results.map { it.toDomain() }, data.page))
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
     }
 
-    override suspend fun getMoviesTopRated(page: Int): Pair<List<Movie>, Int> {
-        val data = movieService.getTopRatedMovies(page)
-        return Pair(data.results.map { it.toDomain() }, data.page)
+    override suspend fun getMoviesTopRated(page: Int): Result<Pair<List<Movie>, Int>> {
+        try {
+            val data = movieService.getTopRatedMovies(page)
+            return Result.success(Pair(data.results.map { it.toDomain() }, data.page))
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
     }
 
-    override suspend fun getMovieDetail(movieId: Int): Movie {
-        return movieService.getMovieDetail(movieId).toDomain()
+    override suspend fun getMovieDetail(movieId: Int): Result<Movie> {
+        try {
+            return Result.success(movieService.getMovieDetail(movieId).toDomain())
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
     }
 
-    override suspend fun getMovieReviews(movieId: Int, page: Int): ReviewPagination {
-        return movieService.getMovieReviews(movieId, page).toDomain()
+    override suspend fun getMovieReviews(movieId: Int, page: Int): Result<ReviewPagination> {
+        try {
+            return Result.success(movieService.getMovieReviews(movieId, page).toDomain())
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
     }
 
-    override suspend fun getFavoriteMovies(): List<Movie> {
-        return movieDao.getAll().map { it.toDomain() }
+    override suspend fun getFavoriteMovies(): Result<List<Movie>> {
+        try {
+            return Result.success(movieDao.getAll().map { it.toDomain() })
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
     }
 
-    override suspend fun getFavoriteMovie(id: Int): Movie? {
-        return movieDao.getById(id)?.toDomain()
+    override suspend fun getFavoriteMovie(id: Int): Result<Movie?> {
+        try {
+            val data = movieDao.getById(id)?.toDomain()
+            return Result.success(data)
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
     }
 
-    override suspend fun addFavoriteMovie(movie: Movie) {
-        movieDao.insert(movie.toEntity())
+    override suspend fun addFavoriteMovie(movie: Movie): Result<Unit> {
+        try {
+            movieDao.insert(movie.toEntity())
+            return Result.success(Unit)
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
     }
 
-    override suspend fun deleteFavoriteMovie(movie: Movie) {
-        movieDao.deleteById(movie.id)
+    override suspend fun deleteFavoriteMovie(movie: Movie): Result<Unit> {
+        try {
+            movieDao.deleteById(movie.id)
+            return Result.success(Unit)
+        } catch (e: Exception) {
+            return Result.failure(e)
+        }
     }
 
     private fun MovieDto.toDomain(): Movie = Movie(

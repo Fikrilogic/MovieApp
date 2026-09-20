@@ -10,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -39,8 +40,9 @@ class MovieDetailViewModel @Inject constructor(
     private fun loadMovieDetail(movieId: Int) {
         viewModelScope.launch {
             try {
-                val movie = getMovieDetailUseCase(movieId)
-                _uiState.update { it.copy(movie = movie) }
+                getMovieDetailUseCase(movieId).collect { movie ->
+                    _uiState.update { it.copy(movie = movie) }
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -53,18 +55,19 @@ class MovieDetailViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoadingReviews = true) }
             try {
-                val newReviews = getMovieReviewsUseCase(id, currentPage)
+                getMovieReviewsUseCase(id, currentPage).collect { reviews ->
+                    _uiState.update {
+                        it.copy(
+                            reviews = it.reviews + reviews.results,
+                            isLoadingReviews = false
+                        )
+                    }
+                    if (currentPage >= reviews.totalPages) {
+                        isCanScroll = false
+                    }
+                    currentPage++
 
-                _uiState.update {
-                    it.copy(
-                        reviews = it.reviews + newReviews.results,
-                        isLoadingReviews = false
-                    )
                 }
-                if (currentPage >= newReviews.totalPages) {
-                    isCanScroll = false
-                }
-                currentPage++
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoadingReviews = false) }
             }
@@ -74,8 +77,10 @@ class MovieDetailViewModel @Inject constructor(
     fun loadFavoriteMovie(id: Int) {
         viewModelScope.launch {
             try {
-                val movieFavorite = getMovieFavoriteUseCase(id)
-                _uiState.update { it.copy(isFavorite = movieFavorite != null) }
+                getMovieFavoriteUseCase(id).collect { movieFavorite ->
+                    _uiState.update { it.copy(isFavorite = movieFavorite != null) }
+                }
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -87,14 +92,19 @@ class MovieDetailViewModel @Inject constructor(
             try {
                 val movie = _uiState.value.movie ?: return@launch
                 val wasFavorite = _uiState.value.isFavorite
-                addFavoriteMovieUseCase(movie)
-                val message = if (wasFavorite) "Removed from favorites" else "Added to favorites"
-                _uiState.update { 
-                    it.copy(
-                        isFavorite = !wasFavorite,
-                        toastMessage = message
-                    ) 
+                addFavoriteMovieUseCase(movie).catch { err ->
+                    _uiState.update { it.copy(toastMessage = err.message) }
+                }.collect {
+                    val message =
+                        if (wasFavorite) "Removed from favorites" else "Added to favorites"
+                    _uiState.update {
+                        it.copy(
+                            isFavorite = !wasFavorite,
+                            toastMessage = message
+                        )
+                    }
                 }
+
             } catch (e: Exception) {
                 e.printStackTrace()
             }

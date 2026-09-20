@@ -28,14 +28,18 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(loadingPopularMovie = true) }
             try {
-                val newMovies = getMoviesPopularUseCase(_uiState.value.moviesPopular.page)
-
-                _uiState.update {
-                    it.copy(
-                        moviesPopular = it.moviesPopular.copy(movies = it.moviesPopular.movies + newMovies.first, page = newMovies.second + 1),
-                        loadingPopularMovie = false
-                    )
+                getMoviesPopularUseCase(_uiState.value.moviesPopular.page).collect { newMovies ->
+                    _uiState.update {
+                        it.copy(
+                            moviesPopular = it.moviesPopular.copy(
+                                movies = it.moviesPopular.movies + newMovies.first,
+                                page = newMovies.second + 1
+                            ),
+                            loadingPopularMovie = false
+                        )
+                    }
                 }
+
             } catch (e: Exception) {
                 _uiState.update { it.copy(loadingPopularMovie = false) }
             }
@@ -47,13 +51,16 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(loadingTopRatedMovie = true) }
             try {
-                val newMovies = getMoviesTopRatedUseCase(_uiState.value.moviesTopRated.page)
-
-                _uiState.update {
-                    it.copy(
-                        moviesTopRated = it.moviesTopRated.copy(movies = it.moviesTopRated.movies + newMovies.first, page = newMovies.second + 1),
-                        loadingTopRatedMovie = false
-                    )
+                getMoviesTopRatedUseCase(_uiState.value.moviesTopRated.page).collect { newMovies ->
+                    _uiState.update {
+                        it.copy(
+                            moviesTopRated = it.moviesTopRated.copy(
+                                movies = it.moviesTopRated.movies + newMovies.first,
+                                page = newMovies.second + 1
+                            ),
+                            loadingTopRatedMovie = false
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(loadingTopRatedMovie = false) }
@@ -66,13 +73,16 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(loadingNowPlayingMovie = true) }
             try {
-                val newMovies = getMoviesNowPlayingUseCase(_uiState.value.moviesNowPlaying.page)
-
-                _uiState.update {
-                    it.copy(
-                        moviesNowPlaying = it.moviesNowPlaying.copy(movies = it.moviesNowPlaying.movies + newMovies.first, page = newMovies.second + 1),
-                        loadingNowPlayingMovie = false
-                    )
+                getMoviesNowPlayingUseCase(_uiState.value.moviesNowPlaying.page).collect { newMovies ->
+                    _uiState.update {
+                        it.copy(
+                            moviesNowPlaying = it.moviesNowPlaying.copy(
+                                movies = it.moviesNowPlaying.movies + newMovies.first,
+                                page = newMovies.second + 1
+                            ),
+                            loadingNowPlayingMovie = false
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 _uiState.update { it.copy(loadingNowPlayingMovie = false) }

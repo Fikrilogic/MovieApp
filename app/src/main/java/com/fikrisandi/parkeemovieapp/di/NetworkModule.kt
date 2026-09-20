@@ -16,6 +16,7 @@ import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.kotlinx.serialization.asConverterFactory
+import java.util.concurrent.TimeUnit
 import javax.inject.Singleton
 
 @Module
@@ -50,6 +51,8 @@ object NetworkModule {
                 .url(url)
                 .header("Authorization", "Bearer ${BuildConfig.MOVIE_API_KEY}")
             val request = requestBuilder.build()
+
+//            chain.withConnectTimeout(2000, TimeUnit.MILLISECONDS)
             chain.proceed(request)
         }
 

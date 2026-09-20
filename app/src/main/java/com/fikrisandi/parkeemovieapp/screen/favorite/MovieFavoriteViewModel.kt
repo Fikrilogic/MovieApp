@@ -24,14 +24,16 @@ class MovieFavoriteViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             try {
-                val newMovies = getMoviesFavoriteUseCase()
-
-                _uiState.update {
-                    it.copy(
-                        moviesFavorite = newMovies,
-                        isLoading = false
-                    )
+                getMoviesFavoriteUseCase().collect{ movies ->
+                    _uiState.update {
+                        it.copy(
+                            moviesFavorite = movies,
+                            isLoading = false
+                        )
+                    }
                 }
+
+
             } finally {
                 _uiState.update { it.copy(isLoading = false) }
             }
